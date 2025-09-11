@@ -14,5 +14,4 @@ const connectDB = async (DATABASE_URL) => {
 
 export default connectDB;
 
-// password esynLDs1HW1de9V5
-// id mayankkushwaha185_db_user
+
