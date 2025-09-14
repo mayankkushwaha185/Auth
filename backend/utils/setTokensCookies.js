@@ -5,22 +5,27 @@ const setTokensCookies = (
   newAccessTokenExp,
   newRefreshTokenExp
 ) => {
-  const accessTokenMaxAge =
+  const accessTokenmaxAge =
     (newAccessTokenExp - Math.floor(Date.now() / 1000)) * 1000;
-  const refreshTokenMaxAge =
+  const refreshTokenmaxAge =
     (newRefreshTokenExp - Math.floor(Date.now() / 1000)) * 1000;
 
   // SetCookie for access Token
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
-    maxAge: accessTokenMaxAge,
+    maxAge: accessTokenmaxAge,
   });
   // SetCookie for Refresh Token
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
-    maxAge: refreshTokenMaxAge,
+    maxAge: refreshTokenmaxAge,
+  });
+  res.cookie("is_auth", true, {
+    httpOnly: false,
+    secure: false,
+    maxAge: refreshTokenmaxAge,
   });
 };
 

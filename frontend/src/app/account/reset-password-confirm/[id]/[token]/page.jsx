@@ -1,22 +1,49 @@
 "use client";
 
 import { useFormik } from "formik";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { resetPasswordSchema } from "@/validation/schemas";
+import { useResetPasswordMutation } from "@/lib/services/auth";
+import { useState } from "react";
 
+useResetPasswordMutation;
 const initialValues = {
   password: "",
   password_confirmation: "",
 };
 
 const ResetPasswordConfirm = () => {
+  const [serverErrorMessage, setServerErrorMessage] = useState("");
+  const [serverSuccessMessage, setServerSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [resetPassword] = useResetPasswordMutation();
   const { id, token } = useParams();
   const { values, errors, handleChange, handleSubmit } = useFormik({
     initialValues,
     validationSchema: resetPasswordSchema,
-    onSubmit: async (values) => {
-      const data = { ...values, id, token };
-      console.log(data);
+    onSubmit: async (values, action) => {
+      setLoading(true);
+      try {
+        const data = { ...values, id, token };
+        const response = await resetPassword(data);
+        if (response.data && response.data.status === "success") {
+          setServerSuccessMessage(response.data.message);
+          setServerErrorMessage("");
+          router.push("/account/login");
+          action.resetForm();
+          setLoading(false);
+        }
+        if (response.error && response.error.data.status === "failed") {
+          setServerErrorMessage(response.error.data.message);
+          setServerSuccessMessage(" ");
+          setLoading(false);
+        }
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+      }
     },
   });
 
@@ -40,7 +67,9 @@ const ResetPasswordConfirm = () => {
                 className="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
               />
               {errors.password && (
-                <div className="text-sm text-red-500 px-2">{errors.email}</div>
+                <div className="text-sm text-red-500 px-2">
+                  {errors.password}
+                </div>
               )}
             </div>
             <div className="mb-4">
@@ -65,11 +94,24 @@ const ResetPasswordConfirm = () => {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4  rounded-md shadow-sm focus:outline-none disabled:bg-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
             >
               Reset Password
             </button>
           </form>
+          <div>
+            {serverSuccessMessage && (
+              <div className="text-sm text-green-500 font-semibold px-2">
+                {serverSuccessMessage}
+              </div>
+            )}
+            {serverErrorMessage && (
+              <div className="text-sm text-red-500 font-semibold px-2">
+                {serverErrorMessage}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

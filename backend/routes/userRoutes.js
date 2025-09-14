@@ -16,7 +16,7 @@ import setAuthHeader from "../middlewares/setAuthHeader.js";
 
 // public
 userRoutes.post("/register", userRegistration);
-userRoutes.post("/verifyEmail", verifyEmail);
+userRoutes.post("/verify-email", verifyEmail);
 userRoutes.post("/login", userLogin);
 userRoutes.post("/refresh-token", getNewAccessToken);
 userRoutes.post("/reset-password-link", sendUserPasswordResetEmail);

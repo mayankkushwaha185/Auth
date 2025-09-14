@@ -13,5 +13,3 @@ const connectDB = async (DATABASE_URL) => {
 };
 
 export default connectDB;
-
-

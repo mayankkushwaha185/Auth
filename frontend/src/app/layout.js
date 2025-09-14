@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import StoreProvider from "./StoreProvider";
 import "./globals.css";
 export const metadata = {
   title: "Auth Project",
@@ -6,12 +7,12 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  // console.log(children);
   return (
     <html lang="en">
       <body className="bg-gray-200">
         <Navbar />
-
-        {children}
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

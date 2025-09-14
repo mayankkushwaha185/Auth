@@ -1,5 +1,6 @@
 import isTokenExpire from "../utils/isTokenExpired.js";
 import refreshAccessToken from "../utils/refreshAccessToken.js";
+import setTokensCookies from "../utils/setTokensCookies.js";
 
 const setAuthHeader = async (req, res, next) => {
   try {

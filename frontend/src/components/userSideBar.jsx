@@ -1,13 +1,25 @@
 "use client";
 
+import { useLogoutUserMutation } from "@/lib/services/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const UserSideBar = () => {
   const router = useRouter();
+  const [logoutUser] = useLogoutUserMutation();
   //    const router = useRouter();
   const handleLogout = async () => {
-    router.push("/");
+    try {
+      const response = await logoutUser();
+      if (response.data && response.data.status === "success") {
+        router.push("/");
+      }
+      if (response.error && response.error.data.status === "failed") {
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

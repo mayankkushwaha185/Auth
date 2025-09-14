@@ -17,12 +17,12 @@ export const userRegistration = async (req, res) => {
     if (!name || !email || !password || !password_confirmation) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ status: "failed", message: "All fields are required" });
     }
 
     if (password !== password_confirmation) {
       return res.status(400).json({
-        success: false,
+        status: "failed",
         message: "Password and confirm password do not match",
       });
     }
@@ -32,7 +32,7 @@ export const userRegistration = async (req, res) => {
     if (existingUser) {
       return res
         .status(409)
-        .json({ success: false, message: "Email already exists" });
+        .json({ status: "failed", message: "Email already exists" });
     }
 
     // Hash password
@@ -49,9 +49,13 @@ export const userRegistration = async (req, res) => {
     // Send verification email
     await sendEmailVerification(req, user);
 
-    res.status(201).json({ success: true, data: user });
+    res.status(201).json({
+      status: "success",
+      message: "Registration successfull",
+      data: user,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ status: "failed", message: error.message });
   }
 };
 
@@ -324,7 +328,10 @@ export const sendUserPasswordResetEmail = async (req, res) => {
         hello ${user.name}, </p><p>please <a href="${resetLink}">Click here</a> to reset your password
         </p>`,
     });
-    return res.status(200).json({ message: "Email send" });
+    return res.status(200).json({
+      status: "success",
+      message: "Password reset Email sent. Please check your email",
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -342,7 +349,9 @@ export const userPasswordReset = async (req, res) => {
     // Find user by id
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(404)
+        .json({ status: " failed", message: "User not found" });
     }
     // Validate token
     const new_secret = user._id + process.env.JWT_ACCESS_TOKEN_SECRET_KEY;
@@ -368,7 +377,9 @@ export const userPasswordReset = async (req, res) => {
     await User.findByIdAndUpdate(user._id, {
       $set: { password: newHashPassword },
     });
-    res.status(200).json({ message: "Password reset succesfully" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Password reset succesfully" });
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return res.status(400).json({

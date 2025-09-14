@@ -1,19 +1,45 @@
 "use client";
 
+import { useResetPasswordLinkMutation } from "@/lib/services/auth";
 import { loginSchema, resetPasswordLinkSchema } from "@/validation/schemas";
 import { useFormik } from "formik";
 import Link from "next/link";
+import { useState } from "react";
 
 const initialValues = {
   email: "",
 };
 
 const ResetPasswordLink = () => {
+  const [serverErrorMessage, setServerErrorMessage] = useState("");
+  const [serverSuccessMessage, setServerSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resetPasswordLink] = useResetPasswordLinkMutation();
   const { values, errors, handleChange, handleSubmit } = useFormik({
     initialValues,
     validationSchema: resetPasswordLinkSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, action) => {
+      setLoading(true);
       console.log(values);
+      try {
+        const response = await resetPasswordLink(values);
+        if (response.data && response.data.status === "success") {
+          setServerSuccessMessage(response.data.message);
+          setServerErrorMessage("");
+
+          action.resetForm();
+          setLoading(false);
+        }
+        if (response.error && response.error.data.status === "failed") {
+          setServerErrorMessage(response.error.data.message);
+          setServerSuccessMessage(" ");
+          setLoading(false);
+        }
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+      }
     },
   });
 
@@ -42,12 +68,28 @@ const ResetPasswordLink = () => {
             </div>
 
             <button
+              disabled={loading}
               type="submit"
-              className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4  rounded-md shadow-sm focus:outline-none disabled:bg-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+              className="w-full bg-indigo-500 hover:bg-indigo-600
+              text-white font-medium py-2 px-4 rounded-md shadow-sm
+              focus:outline-none disabled:bg-gray-400 focus:border-indigo-500
+              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
             >
-              Send
+              {loading ? "Sending Email..." : "Send"}
             </button>
           </form>
+          <div>
+            {serverSuccessMessage && (
+              <div className="text-sm text-green-500 font-semibold px-2">
+                {serverSuccessMessage}
+              </div>
+            )}
+            {serverErrorMessage && (
+              <div className="text-sm text-red-500 font-semibold px-2">
+                {serverErrorMessage}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

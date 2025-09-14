@@ -3,7 +3,9 @@
 import { registerSchema } from "@/validation/schemas";
 import { useFormik } from "formik";
 import Link from "next/link";
-import { use, useState } from "react";
+import { useCreateUserMutation } from "@/lib/services/auth";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const initialValues = {
   name: "",
@@ -13,14 +15,38 @@ const initialValues = {
 };
 
 const Register = () => {
+  const router = useRouter();
+  const [serverErrorMessage, setServerErrorMessage] = useState("");
+  const [serverSuccessMessage, setServerSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [createUser] = useCreateUserMutation();
   const { values, errors, handleChange, handleSubmit } = useFormik({
     initialValues,
     validationSchema: registerSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, action) => {
+      setLoading(true);
       console.log(values);
+      try {
+        const response = await createUser(values);
+        if (response.data && response.data.status === "success") {
+          setServerSuccessMessage(response.data.message);
+          setServerErrorMessage("");
+          router.push("/account/verify-email");
+          action.resetForm();
+          setLoading(false);
+        }
+        if (response.error && response.error.data.status === "failed") {
+          setServerErrorMessage(response.error.data.message);
+          setServerSuccessMessage(" ");
+          setLoading(false);
+        }
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+      }
     },
   });
-  console.log(errors);
   return (
     <div>
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -102,6 +128,7 @@ const Register = () => {
             <button
               type="submit"
               className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4  rounded-md shadow-sm focus:outline-none disabled:bg-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+              disabled={loading}
             >
               Register
             </button>
@@ -115,6 +142,18 @@ const Register = () => {
               Login
             </Link>
           </p>
+          <div>
+            {serverSuccessMessage && (
+              <div className="text-sm text-green-500 font-semibold px-2">
+                {serverSuccessMessage}
+              </div>
+            )}
+            {serverErrorMessage && (
+              <div className="text-sm text-red-500 font-semibold px-2">
+                {serverErrorMessage}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

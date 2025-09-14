@@ -4,6 +4,10 @@ import { loginSchema } from "@/validation/schemas";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+import { useLoginUserMutation } from "@/lib/services/auth";
+import { useState } from "react";
+
 const initialValues = {
   email: "",
   password: "",
@@ -11,12 +15,34 @@ const initialValues = {
 
 const Login = () => {
   const router = useRouter();
+  const [serverErrorMessage, setServerErrorMessage] = useState("");
+  const [serverSuccessMessage, setServerSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loginUser] = useLoginUserMutation();
   const { values, errors, handleChange, handleSubmit } = useFormik({
     initialValues,
     validationSchema: loginSchema,
-    onSubmit: async (values) => {
-      console.log(values);
-      router.push("/user/profile");
+    onSubmit: async (values, action) => {
+      setLoading(true);
+      try {
+        const response = await loginUser(values);
+        if (response.data && response.data.status === "success") {
+          setServerSuccessMessage(response.data.message);
+          setServerErrorMessage("");
+          router.push("/user/profile");
+          action.resetForm();
+          setLoading(false);
+        }
+        if (response.error && response.error.data.status === "failed") {
+          setServerErrorMessage(response.error.data.message);
+          setServerSuccessMessage(" ");
+          setLoading(false);
+        }
+        console.log(response);
+      } catch (error) {
+        setLoading(false);
+        console.log(error);
+      }
     },
   });
 
@@ -74,9 +100,10 @@ const Login = () => {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4  rounded-md shadow-sm focus:outline-none disabled:bg-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
             >
-              Register
+              Login
             </button>
           </form>
           <p className="text-sm text-gray-600 p-1">
@@ -88,6 +115,18 @@ const Login = () => {
               Create an account
             </Link>
           </p>
+          <div>
+            {serverSuccessMessage && (
+              <div className="text-sm text-green-500 font-semibold px-2">
+                {serverSuccessMessage}
+              </div>
+            )}
+            {serverErrorMessage && (
+              <div className="text-sm text-red-500 font-semibold px-2">
+                {serverErrorMessage}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
